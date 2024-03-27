@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 import datetime
+
 import json
 import time
 # %%
@@ -26,6 +27,7 @@ def save_data(data, option):
 # %%
 
 page = 1
+date_stop: pd.to_datetime('2024-03-01').date()
 while True:
     print(page)
     resp = get_response(page=page, per_page=100, strategy="new")
@@ -34,15 +36,22 @@ while True:
         option = 'json'
         save_data(data, option)
 
-        if len(data) < 100:
+        date = pd.to_datetime(data[-1]["updated_at"]).date()
+
+        if len(data) < 100 or date < date_stop:
             break
         page +=1
-        time.sleep(2)
+        time.sleep(5)
     else:
         print(resp.status_code)
         print(resp.json())
-        time.sleep(30)
+        time.sleep(60 * 15)
 
 
 
+# %%
+import pandas as pd
+
+date = "2024-03-27T05:41:43.797Z"
+pd.to_datetime(date).date()
 # %%
