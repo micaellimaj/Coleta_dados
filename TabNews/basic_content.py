@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import datetime
 import json
-
+import time
 # %%
 
 def get_response(**Kwargs):
@@ -11,28 +11,38 @@ def get_response(**Kwargs):
     resp = requests.get(url, params = Kwargs)
     return resp
 
-def save_data(data, option='json'):
-
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+def save_data(data, option):
+    now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
 
     if option == 'json':
-        with open(f"data/content/json/{now}.json", 'w') as open_file:
+        with open(f"data/contents/json/{now}.json", 'w') as open_file:
             json.dump(data, open_file, indent=4)
 
     elif option == 'dataframe':
         df = pd.DataFrame(data)
-        df.to_parquet(f"data/content/parquet/{now}.parquet", index=False)
+        df.to_parquet(f"data/contents/parquet/{now}.parquet", index=False)
+
 
 # %%
 
-resp = get_response(page=1, per_page=100, strategy="new")
-if resp.status_code == 200:
-    print("Sucesso!")
-#%%
+page = 1
+while True:
+    print(page)
+    resp = get_response(page=page, per_page=100, strategy="new")
+    if resp.status_code == 200:
+        data = resp.json()
+        option = 'json'
+        save_data(data, option)
 
-data = resp.json()
-data
+        if len(data) < 100:
+            break
+        page +=1
+        time.sleep(2)
+    else:
+        print(resp.status_code)
+        print(resp.json())
+        time.sleep(30)
 
-#%%
-save_data(data)
 
+
+# %%
